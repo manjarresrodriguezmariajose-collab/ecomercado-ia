@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EcoMercado IA | Simulador</title>
+<style>
+:root{--green:#176b4d;--green2:#21865e;--mint:#e8f5ee;--ink:#1e3028;--muted:#66776f;--line:#dce7e0;--bg:#f5f8f5;--orange:#b96513;--red:#b43b3b;--white:#fff}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:linear-gradient(120deg,#124b38,#21865e);color:white;padding:24px max(20px,calc((100% - 1180px)/2));}
+.brand{display:flex;align-items:center;gap:12px}.logo{font-size:30px;background:#ffffff20;border-radius:12px;padding:8px}
+h1{margin:0;font-size:25px}header p{margin:6px 0 0;color:#d9f0e3;font-size:14px}
+main{max-width:1180px;margin:22px auto;padding:0 18px 40px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}.tab{border:1px solid var(--line);background:white;color:var(--green);padding:11px 15px;border-radius:10px;cursor:pointer;font-weight:700}.tab.active{background:var(--green);color:white}
+.page{display:none}.page.active{display:block}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}.metric,.panel{background:white;border:1px solid var(--line);border-radius:15px;padding:18px;box-shadow:0 3px 12px #153d2510}
+.metric .label{color:var(--muted);font-size:13px}.metric .num{font-size:29px;font-weight:800;margin:8px 0 4px}.metric small{color:var(--muted)}
+.layout{display:grid;grid-template-columns:1.2fr .8fr;gap:16px}.panel h2{font-size:17px;margin:0 0 14px}.panel p.sub{color:var(--muted);font-size:13px;margin-top:-7px}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:11px 8px;border-bottom:1px solid #edf1ee}th{color:var(--muted);font-weight:700}td strong{font-weight:700}
+.pill{display:inline-block;padding:5px 8px;border-radius:20px;font-size:11px;font-weight:800}.alto{background:#fde8e6;color:#a22d2d}.medio{background:#fff0d8;color:#94520b}.bajo{background:#e4f5e9;color:#176b4d}
+button,.btn{border:0;background:var(--green);color:white;padding:10px 13px;border-radius:9px;cursor:pointer;font-weight:700}.secondary{background:#edf5ef;color:var(--green);border:1px solid var(--line)}.danger{background:#fff0ef;color:#a22d2d;border:1px solid #f2d3d0}
+label{display:block;font-size:13px;font-weight:700;margin:12px 0 6px}input,select{width:100%;padding:11px;border:1px solid #cfdcd3;border-radius:9px;background:white;color:var(--ink);font:inherit}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}.full{grid-column:1/-1}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.alert{padding:12px;border-radius:10px;background:#fff6e7;border:1px solid #f4dfb9;margin-bottom:9px;font-size:13px}.alert.red{background:#fff0ef;border-color:#f1d0cd}.alert.green{background:#eaf7ee;border-color:#cfe9d7}
+.sensor{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}.sensor:last-child{border-bottom:0}.sensor b{display:block}.sensor small{color:var(--muted)}
+.big-reading{font-size:24px;font-weight:800;color:var(--green)}
+.bar{height:9px;background:#e8eee9;border-radius:10px;overflow:hidden;margin-top:8px}.bar span{display:block;height:100%;background:var(--green2);border-radius:10px}
+.note{background:#edf5ef;padding:12px 14px;border-radius:10px;font-size:13px;line-height:1.5;margin-top:15px}
+.empty{text-align:center;padding:25px;color:var(--muted)}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
+@media(max-width:850px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.layout{grid-template-columns:1fr}}
+@media(max-width:520px){h1{font-size:21px}.grid{gap:8px}.metric{padding:13px}.metric .num{font-size:24px}.formgrid{grid-template-columns:1fr}.full{grid-column:auto}table{font-size:12px}th,td{padding:9px 5px}}
+</style>
+</head>
+<body>
+<header>
+ <div class="brand"><div class="logo">🌱</div><div><h1>EcoMercado IA</h1><p>Simulador inteligente para prevenir el desperdicio de alimentos · Versión 1.0</p></div></div>
+</header>
+<main>
+ <nav class="tabs" aria-label="Secciones">
+  <button class="tab active" data-page="dashboard">📊 Panel principal</button>
+  <button class="tab" data-page="products">🥑 Inventario</button>
+  <button class="tab" data-page="alerts">🔔 Alertas y redistribución</button>
+  <button class="tab" data-page="iot">📡 Simulación IoT</button>
+ </nav>
+ <section id="dashboard" class="page active">
+  <div class="grid">
+   <div class="metric"><div class="label">Productos registrados</div><div class="num" id="mProducts">6</div><small>En el inventario simulado</small></div>
+   <div class="metric"><div class="label">Unidades disponibles</div><div class="num" id="mStock">—</div><small>Suma de existencias</small></div>
+   <div class="metric"><div class="label">Excedente potencial</div><div class="num" id="mSurplus">—</div><small>Unidades por encima de la demanda</small></div>
+   <div class="metric"><div class="label">Alertas prioritarias</div><div class="num" id="mAlerts">—</div><small>Riesgo alto según las reglas</small></div>
+  </div>
+  <div class="layout">
+   <div class="panel"><h2>Inventario y nivel de riesgo</h2><p class="sub">Resumen calculado con las ventas previstas para los próximos siete días.</p>
+    <div style="overflow-x:auto"><table><thead><tr><th>Producto</th><th>Stock</th><th>Demanda</th><th>Excedente</th><th>Riesgo</th></tr></thead><tbody id="dashboardRows"></tbody></table></div>
+   </div>
+   <div class="panel"><h2>Alertas recientes</h2><div id="dashboardAlerts"></div><div class="actions"><button onclick="showPage('alerts')">Ver todas las alertas</button><button class="secondary" onclick="showPage('products')">Gestionar inventario</button></div></div>
+  </div>
+  <div class="note"><b>¿Cómo funciona?</b> EcoMercado IA compara el inventario con la demanda estimada, detecta posibles excedentes y prioriza los productos que vencen pronto. Esta versión usa reglas demostrativas, no un modelo de IA entrenado.</div>
+ </section>
+ <section id="products" class="page">
+  <div class="layout">
+   <div class="panel"><h2>Registrar un producto</h2><p class="sub">Agrega alimentos para ver cómo cambian los cálculos.</p>
+    <form id="productForm"><div class="formgrid">
+     <div class="full"><label for="name">Nombre del alimento</label><input id="name" required placeholder="Ej. Tomate"></div>
+     <div><label for="stock">Inventario actual (unidades)</label><input id="stock" type="number" min="0" step="1" required placeholder="50"></div>
+     <div><label for="sales">Ventas previstas por 7 días</label><input id="sales" type="number" min="0" step="1" required placeholder="30"></div>
+     <div><label for="days">Días hasta el vencimiento</label><input id="days" type="number" min="0" step="1" required placeholder="3"></div>
+     <div><label for="period">Periodo de análisis</label><select id="period"><option value="1">1 día</option><option value="3">3 días</option><option value="7" selected>7 días</option><option value="14">14 días</option></select></div>
+    </div><div class="actions"><button type="submit">＋ Agregar producto</button><button type="button" class="secondary" onclick="resetDemo()">Restablecer datos de ejemplo</button></div></form>
+   </div>
+   <div class="panel"><h2>Cómo se calculan los resultados</h2>
+    <p><b>Demanda estimada</b></p><p class="sub">Ventas previstas para 7 días × días del periodo ÷ 7.</p>
+    <p><b>Excedente potencial</b></p><p class="sub">Máximo entre cero e (inventario actual − demanda estimada).</p>
+    <p><b>Riesgo alto</b></p><p class="sub">Hay excedente y el alimento vence en 2 días o menos.</p>
+    <p><b>Riesgo medio</b></p><p class="sub">El excedente representa al menos el 25 % del inventario, sin cumplir el criterio de riesgo alto.</p>
+    <p><b>Riesgo bajo</b></p><p class="sub">Los demás casos.</p>
+   </div>
+  </div>
+  <div class="panel" style="margin-top:16px"><h2>Productos registrados</h2><div style="overflow-x:auto"><table><thead><tr><th>Producto</th><th>Inventario</th><th>Ventas/7 días</th><th>Vence en</th><th>Demanda</th><th>Excedente</th><th>Riesgo</th><th>Acción</th></tr></thead><tbody id="productRows"></tbody></table></div></div>
+ </section>
+ <section id="alerts" class="page">
+  <div class="panel"><h2>Centro de alertas</h2><p class="sub">Productos que podrían necesitar una acción prioritaria. Verifica siempre su estado antes de redistribuirlos.</p><div id="allAlerts"></div></div>
+  <div class="panel" style="margin-top:16px"><h2>Plan sugerido de aprovechamiento</h2>
+   <div class="grid" style="grid-template-columns:repeat(3,minmax(0,1fr));margin:0">
+    <div><b>1. Revisar</b><p class="sub">Confirmar cantidad, estado y fecha de vencimiento.</p></div>
+    <div><b>2. Priorizar</b><p class="sub">Promover venta o consumo seguro de productos próximos a vencer.</p></div>
+    <div><b>3. Coordinar</b><p class="sub">Contactar posibles organizaciones receptoras si el alimento es apto.</p></div>
+   </div>
+   <div class="note">El simulador no envía alimentos ni contacta organizaciones automáticamente. Las alertas son recomendaciones y no certifican la seguridad sanitaria.</div>
+  </div>
+ </section>
+ <section id="iot" class="page">
+  <div class="layout">
+   <div class="panel"><h2>Panel de sensores simulados</h2><p class="sub">Lecturas ficticias para representar una futura integración con sensores físicos.</p>
+    <div class="sensor"><div><b>🌡️ Temperatura</b><small>Sensor de almacenamiento</small></div><div style="text-align:right"><div class="big-reading" id="temp">4.0 °C</div><small id="tempStatus">Lectura simulada</small></div></div>
+    <div class="sensor"><div><b>💧 Humedad</b><small>Sensor ambiental</small></div><div style="text-align:right"><div class="big-reading" id="humidity">65 %</div><small>Lectura simulada</small></div></div>
+    <div class="sensor"><div><b>📶 Conexión</b><small>Estado del módulo</small></div><div style="text-align:right"><span class="pill bajo">SIMULACIÓN ACTIVA</span></div></div>
+    <div class="actions"><button onclick="simulateSensors()">↻ Simular nueva lectura</button></div>
+   </div>
+   <div class="panel"><h2>Registro de lecturas</h2><div id="sensorLog"><div class="empty">Pulsa “Simular nueva lectura” para registrar una lectura.</div></div><div class="note">Los valores no proceden de un dispositivo real ni deben utilizarse para decidir si un alimento es seguro. Las condiciones adecuadas dependen del tipo de producto.</div></div>
+  </div>
+ </section>
+ <footer>EcoMercado IA · Prototipo educativo · Datos simulados · Versión 1.0</footer>
+</main>
+<script>
+const initialProducts = [
+ {id:1,name:"Tomate",stock:80,sales:45,days:2},
+ {id:2,name:"Banano",stock:60,sales:35,days:1},
+ {id:3,name:"Lechuga",stock:35,sales:28,days:3},
+ {id:4,name:"Zanahoria",stock:50,sales:30,days:8},
+ {id:5,name:"Mango",stock:70,sales:25,days:4},
+ {id:6,name:"Fresa",stock:24,sales:20,days:2}
+];
+let products = initialProducts.map(p=>({...p}));
+let period = 7, nextId=7, sensorHistory=[];
+const $=id=>document.getElementById(id);
+function calc(p){
+ const demand=Math.round(p.sales*period/7);
+ const surplus=Math.max(0,p.stock-demand);
+ let risk="Bajo";
+ if(surplus>0 && p.days<=2) risk="Alto";
+ else if(p.stock>0 && surplus/p.stock>=.25) risk="Medio";
+ return {...p,demand,surplus,risk};
+}
+function badge(r){return `<span class="pill ${r.toLowerCase()}">Riesgo ${r.toLowerCase()}</span>`}
+function render(){
+ period=Number($("period")?.value||7);
+ const rows=products.map(calc), stock=products.reduce((s,p)=>s+p.stock,0), surplus=rows.reduce((s,p)=>s+p.surplus,0), high=rows.filter(p=>p.risk==="Alto").length;
+ $("mProducts").textContent=products.length;$("mStock").textContent=stock;$("mSurplus").textContent=surplus;$("mAlerts").textContent=high;
+ $("dashboardRows").innerHTML=rows.length?rows.map(p=>`<tr><td><strong>${esc(p.name)}</strong></td><td>${p.stock}</td><td>${p.demand}</td><td>${p.surplus}</td><td>${badge(p.risk)}</td></tr>`).join(""):`<tr><td colspan="5" class="empty">No hay productos registrados.</td></tr>`;
+ $("productRows").innerHTML=rows.length?rows.map(p=>`<tr><td><strong>${esc(p.name)}</strong></td><td>${p.stock}</td><td>${p.sales}</td><td>${p.days} día(s)</td><td>${p.demand}</td><td>${p.surplus}</td><td>${badge(p.risk)}</td><td><button class="danger" onclick="removeProduct(${p.id})">Eliminar</button></td></tr>`).join(""):`<tr><td colspan="8" class="empty">Agrega un producto para comenzar.</td></tr>`;
+ const priority=rows.filter(p=>p.surplus>0).sort((a,b)=>({Alto:0,Medio:1,Bajo:2}[a.risk]-{Alto:0,Medio:1,Bajo:2}[b.risk]));
+ const alertHTML=priority.length?priority.map(p=>`<div class="alert ${p.risk==="Alto"?"red":p.risk==="Bajo"?"green":""}"><b>${esc(p.name)} · ${p.risk==="Alto"?"Prioridad alta":p.risk==="Medio"?"Prioridad media":"Seguimiento"}</b><br>Excedente potencial: ${p.surplus} unidad(es). Vence en ${p.days} día(s).<br><span style="color:#66776f">Acción sugerida: revisar el producto y valorar venta prioritaria o redistribución segura.</span></div>`).join(""):`<div class="alert green">No se identifican excedentes potenciales con las reglas actuales.</div>`;
+ $("dashboardAlerts").innerHTML=priority.slice(0,3).map(p=>`<div class="alert ${p.risk==="Alto"?"red":""}"><b>${esc(p.name)}</b>: ${p.surplus} unidad(es) potencialmente excedentes. ${badge(p.risk)}</div>`).join("")||`<div class="alert green">¡Sin alertas de excedentes por ahora!</div>`;
+ $("allAlerts").innerHTML=alertHTML;
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function removeProduct(id){products=products.filter(p=>p.id!==id);render()}
+function resetDemo(){products=initialProducts.map(p=>({...p}));nextId=7;$("period").value="7";render()}
+$("productForm").addEventListener("submit",e=>{
+ e.preventDefault();
+ const name=$("name").value.trim(),stock=Number($("stock").value),sales=Number($("sales").value),days=Number($("days").value);
+ if(!name||![stock,sales,days].every(Number.isFinite)||stock<0||sales<0||days<0){alert("Revisa los datos. Usa cantidades iguales o mayores que cero.");return}
+ products.push({id:nextId++,name,stock,sales,days});e.target.reset();$("period").value=String(period);render();showPage("products");
+});
+$("period").addEventListener("change",render);
+function showPage(id){document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id===id));document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.page===id))}
+document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
+function simulateSensors(){
+ const t=(2+Math.random()*7).toFixed(1),h=Math.round(45+Math.random()*40);
+ $("temp").textContent=t+" °C";$("humidity").textContent=h+" %";
+ $("tempStatus").textContent=Number(t)>5?"Lectura de ejemplo elevada":"Lectura de ejemplo";
+ sensorHistory.unshift({t,h,time:new Date().toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit",second:"2-digit"})});
+ sensorHistory=sensorHistory.slice(0,5);
+ $("sensorLog").innerHTML=sensorHistory.map(s=>`<div class="sensor"><div><b>${s.time}</b><small>Lectura simulada</small></div><div style="text-align:right"><b>${s.t} °C</b><small>${s.h}% humedad</small></div></div>`).join("");
+}
+render();
+</script>
+</body>
+</html>
